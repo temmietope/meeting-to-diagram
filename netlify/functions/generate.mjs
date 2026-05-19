@@ -22,7 +22,7 @@ export default async (req) => {
     })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
       status: 500,
@@ -48,20 +48,18 @@ export default async (req) => {
     })
   }
 
-  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: `Convert these notes into a Mermaid diagram:\n\n${notes}` }],
-    }),
-  })
+  const upstream = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ parts: [{ text: `Convert these notes into a Mermaid diagram:\n\n${notes}` }] }],
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.2 },
+      }),
+    }
+  )
 
   if (!upstream.ok) {
     const err = await upstream.json().catch(() => ({}))
@@ -72,13 +70,20 @@ export default async (req) => {
   }
 
   const data = await upstream.json()
-  let mermaid = data.content?.[0]?.text?.trim() ?? ''
+  let mermaid = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
 
   mermaid = mermaid
     .replace(/^```mermaid\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/\s*```$/i, '')
     .trim()
+
+  if (!mermaid) {
+    return new Response(JSON.stringify({ error: 'No diagram returned. Please try again.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
 
   return new Response(JSON.stringify({ mermaid }), {
     status: 200,
