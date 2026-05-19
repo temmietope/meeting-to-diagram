@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #0a0a0a;
+    color: #e5e5e5;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #111111;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-white font-medium text-sm
+    transition-all duration-150 hover:bg-accent-hover active:scale-[0.98]
+    disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg text-neutral-400 font-medium text-sm
+    border border-transparent transition-all duration-150
+    hover:text-neutral-200 hover:bg-white/5 hover:border-border
+    active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .card {
+    @apply bg-surface-1 border border-border rounded-xl;
+  }
+
+  .input-base {
+    @apply w-full bg-surface-2 border border-border rounded-lg px-4 py-3
+    text-neutral-200 placeholder-neutral-600 text-sm font-mono
+    focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent
+    transition-all duration-150 resize-none;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md
+    bg-white/5 border border-border text-neutral-400 text-xs font-medium
+    hover:bg-white/10 hover:text-neutral-200 hover:border-neutral-600
+    cursor-pointer transition-all duration-150 active:scale-[0.97];
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent;
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  }
+}
+
+/* Mermaid diagram overrides for dark theme */
+.mermaid-output svg {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.mermaid-output .label {
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
