@@ -70,35 +70,38 @@ export default function DiagramOutput({ diagramCode, isLoading, error: outerErro
     const svgEl = containerRef.current?.querySelector('svg')
     if (!svgEl) return
 
-    const svgData = new XMLSerializer().serializeToString(svgEl)
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const img = new Image()
-
-    const svgWidth = svgEl.viewBox?.baseVal?.width || svgEl.getBoundingClientRect().width || 800
-    const svgHeight = svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height || 600
+    const bbox = svgEl.getBoundingClientRect()
+    const width = bbox.width || 800
+    const height = bbox.height || 600
     const scale = 2
 
-    canvas.width = svgWidth * scale
-    canvas.height = svgHeight * scale
+    // Clone so we can set explicit dimensions without affecting the display
+    const clone = svgEl.cloneNode(true)
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    clone.setAttribute('width', width)
+    clone.setAttribute('height', height)
+
+    const svgData = new XMLSerializer().serializeToString(clone)
+    // Base64 data URI is far more reliable than Blob URLs for canvas drawImage
+    const dataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width * scale
+    canvas.height = height * scale
+    const ctx = canvas.getContext('2d')
     ctx.scale(scale, scale)
     ctx.fillStyle = '#161616'
-    ctx.fillRect(0, 0, svgWidth, svgHeight)
+    ctx.fillRect(0, 0, width, height)
 
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-    const url = URL.createObjectURL(svgBlob)
-
+    const img = new Image()
     img.onload = () => {
       ctx.drawImage(img, 0, 0)
-      URL.revokeObjectURL(url)
-      const pngUrl = canvas.toDataURL('image/png')
       const a = document.createElement('a')
       a.download = 'diagram.png'
-      a.href = pngUrl
+      a.href = canvas.toDataURL('image/png')
       a.click()
     }
-    img.onerror = () => URL.revokeObjectURL(url)
-    img.src = url
+    img.src = dataUri
   }
 
   const displayError = outerError || renderError
